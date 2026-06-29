@@ -1,9 +1,11 @@
+import streamlit as st
+import pandas as pd
 import time
 import re
-import pandas as pd
-import streamlit as st
 
-import undetected_chromedriver as uc
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -34,22 +36,27 @@ def extract_km_from_text(text):
 
 # ===== CLOUD-OPTIMIZED SCRAPING ENGINE =====
 def run_cloud_scraper(urls, status_container):
-    options = uc.ChromeOptions()
+    options = webdriver.ChromeOptions()
     
-    # CRITICAL CLOUD FLAGS: Runs Chrome invisibly in Linux memory
-    options.add_argument("--headless")
+    # Critical flags to pass through cloud server firewalls
+    options.add_argument("--headless=new") 
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
-    
-    status_container.info("🤖 Launching Headless Chrome on the Cloud Server...")
+    options.add_argument("--window-size=1920,1080")
+    # Disguise the automated cloud browser as a regular user
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+    status_container.info("🤖 Dynamically fetching Chrome Driver on Cloud Server...")
     
     try:
-        driver = uc.Chrome(options=options)
+        # Automatically downloads a standalone driver inside the cloud instance
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
     except Exception as e:
         status_container.error(f"Failed to start Chrome Driver: {e}")
         return []
-        
+
     wait = WebDriverWait(driver, 30)
     all_scraped_data = []
 
