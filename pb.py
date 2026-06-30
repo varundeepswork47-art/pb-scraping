@@ -38,21 +38,32 @@ def extract_km_from_text(text):
 def run_cloud_scraper(urls, status_container):
     options = webdriver.ChromeOptions()
     
-    # Critical flags to pass through cloud server firewalls
+    # Force the browser to use the exact location where Docker installs Chrome
+    options.binary_location = "/usr/bin/google-chrome"
+    
+    # Critical flags to execute Chrome seamlessly inside Linux server containers
     options.add_argument("--headless=new") 
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
-    # Disguise the automated cloud browser as a regular user
+    
+    # Premium stealth configuration strings to reduce anti-bot triggering
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
 
-    status_container.info("🤖 Dynamically fetching Chrome Driver on Cloud Server...")
+    status_container.info("🤖 Initializing stable container-bound Chrome driver...")
     
     try:
-        # Automatically downloads a standalone driver inside the cloud instance
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
+        
+        # Strip automated identification property tags
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        })
     except Exception as e:
         status_container.error(f"Failed to start Chrome Driver: {e}")
         return []
@@ -172,13 +183,21 @@ def run_cloud_scraper(urls, status_container):
         except: pass
         return all_rows
 
-    # ===== RUN LOOP =====
+    # ===== RUN LOOP WITH VISUAL DIAGNOSTIC HOOKS =====
     try:
         for idx, url in enumerate(urls):
             status_container.warning(f"🌐 Scraping ({idx+1}/{len(urls)}): {url}")
             driver.get(url)
-            time.sleep(5)
+            time.sleep(8)  # Generous network synchronization allowance for remote clouds
             
+            # DIAGNOSTIC HANDLER: Check if targeted network architecture blocks our cloud server
+            page_src = driver.page_source.lower()
+            if "access denied" in driver.title.lower() or "cloudflare" in page_src or "captcha" in page_src:
+                status_container.error(f"❌ Security checkpoint or Block detected at URL #{idx+1}. Extracting debug snapshot...")
+                driver.save_screenshot("debug_view.png")
+                st.image("debug_view.png", caption=f"Live Cloud Engine Screenshot - URL #{idx+1}")
+                continue
+
             try:
                 try:
                     no_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "//p[text()='No']")))
@@ -255,6 +274,6 @@ if uploaded_excel:
                 )
                 log_box.success("🎯 Task finished completely!")
             else:
-                log_box.error("❌ Cloud Chrome execution failed or could not read pages.")
+                log_box.error("❌ Cloud Chrome execution failed or could not read pages. Review any screenshots rendered above.")
 else:
     st.info("💡 Upload your file on the sidebar to display the run button.")
