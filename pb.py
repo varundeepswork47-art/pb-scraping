@@ -35,32 +35,33 @@ def extract_km_from_text(text):
     return "NA"
 
 # ===== CLOUD-OPTIMIZED SCRAPING ENGINE =====
+# ===== CLOUD-OPTIMIZED SCRAPING ENGINE =====
 def run_cloud_scraper(urls, status_container):
     options = webdriver.ChromeOptions()
     
-    # Force the browser to use the exact location where Docker installs Chrome
+    # Point directly to the location where our Dockerfile puts Google Chrome
     options.binary_location = "/usr/bin/google-chrome"
     
-    # Critical flags to execute Chrome seamlessly inside Linux server containers
+    # Absolute critical execution flags for cloud environments
     options.add_argument("--headless=new") 
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     
-    # Premium stealth configuration strings to reduce anti-bot triggering
+    # Premium user camouflage to pass base perimeter checks
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
 
-    status_container.info("🤖 Initializing stable container-bound Chrome driver...")
+    status_container.info("🤖 Launching Chrome directly from stable system path...")
     
     try:
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=options)
+        # We drop ChromeDriverManager entirely. Modern Selenium finds its matching driver automatically.
+        driver = webdriver.Chrome(options=options)
         
-        # Strip automated identification property tags
+        # Hide automation tags at the root level
         driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
             "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         })
