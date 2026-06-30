@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install the official Google Chrome package
-# The "-f" or let apt install the local .deb handle required sub-dependencies automatically
 RUN curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
     && apt-get update \
     && apt-get install -y ./google-chrome-stable_current_amd64.deb \
@@ -27,4 +26,4 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "pb.py", "--server.port=8501", "--server.address=0.0.0.0"]
