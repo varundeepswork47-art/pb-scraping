@@ -1,12 +1,12 @@
 FROM python:3.10-slim
 
-# Install standard Google Chrome production binaries and dependencies
+# Install system utilities and standard minimal dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     unzip \
     curl \
-    libgconf-2-4 \
+    ca-certificates \
     libnss3 \
     libxss1 \
     libasound2 \
@@ -14,9 +14,11 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install Google Chrome
+# Download and install the official Google Chrome package
+# The "-f" or let apt install the local .deb handle required sub-dependencies automatically
 RUN curl -LO https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && apt-get update && apt-get install -y ./google-chrome-stable_current_amd64.deb \
+    && apt-get update \
+    && apt-get install -y ./google-chrome-stable_current_amd64.deb \
     && rm google-chrome-stable_current_amd64.deb
 
 WORKDIR /app
